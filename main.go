@@ -1,11 +1,23 @@
 package main
 
 import (
-	"fmt"
-	"os"
-	//"net/http"
+	"encoding/json"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"os"
 )
+
+type locations struct {
+	Count    int     `json:"count"`
+	Next     *string `json:"next"`
+	Previous *string `json:"previous"`
+	Results  []struct {
+		Name string `json:"name"`
+		URL  string `json:"url"`
+	} `json:"results"`
+}
 
 type commandConfig struct {
 	next string
@@ -30,6 +42,38 @@ func requestHelp(config *commandConfig) error {
 	return nil
 }
 
+func setUrlConfig(locationData locations, config *commandConfig) {
+	config.prev = *locationData.Previous
+	config.next = *locationData.Next
+}
+
+func locationRequest(url string, config *commandConfig) (locations, error) {
+	var locationData locations
+
+	if len(url) == 0 {
+		url = "https://pokeapi.co/api/v2/location/"
+	}
+	result, err := http.Get(url)
+
+	if err != nil {
+		return locationData, errors.New("failed to get location data")
+	}
+
+	resultBody, err := io.ReadAll(result.Body)
+	result.Body.Close()
+
+	if err != nil {
+		return locationData, errors.New("failed to read location data")
+	}
+
+	err = json.Unmarshal(resultBody, &locationData)
+
+	if err != nil {
+		return locationData, errors.New("failed to unmarshal location data")
+	}
+
+	return locationData, nil
+}
 
 func requestMapBack(config *commandConfig) error {
 	var url string = config.prev
@@ -40,8 +84,11 @@ func requestMapBack(config *commandConfig) error {
 
 	// Go backward
 	fmt.Println("Going backward")
-	config.prev = "test back from back"
-	config.next = "test next from back"
+	
+	locationData, err := locationRequest(url, config)
+	if err == nil {
+		setUrlConfig(locationData, config)
+	}
 
 	return nil
 }
@@ -56,8 +103,10 @@ func requestMap(config *commandConfig) error {
 
 	// Go forward
 	fmt.Println("Going forward")
-	config.prev = "test back from next"
-	config.next = "test next from next"
+	locationData, err := locationRequest(nextUrl, config)
+	if err == nil {
+		setUrlConfig(locationData, config)
+	}
 
 	return nil
 }
@@ -65,13 +114,13 @@ func requestMap(config *commandConfig) error {
 func getCommands() map[string]command {
 	return map[string]command{
 		"map": {
-			name: "Map",
-			desc: "Display next 20 locations",
+			name:   "Map",
+			desc:   "Display next 20 locations",
 			method: requestMap,
 		},
 		"mapb": {
-			name: "Map Back",
-			desc: "Display previous 20 locations",
+			name:   "Map Back",
+			desc:   "Display previous 20 locations",
 			method: requestMapBack,
 		},
 		"help": {
