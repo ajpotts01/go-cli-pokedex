@@ -1,159 +1,52 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
+	"pokedex"
 )
 
-type locations struct {
-	Count    int     `json:"count"`
-	Next     *string `json:"next"`
-	Previous *string `json:"previous"`
-	Results  []struct {
-		Name string `json:"name"`
-		URL  string `json:"url"`
-	} `json:"results"`
-}
-
-type commandConfig struct {
-	next string
-	prev string
-}
-
-type command struct {
-	name   string
-	desc   string
-	method func(config *commandConfig) error
-}
-
-func requestExit(config *commandConfig) error {
+func requestExit(config *pokedex.CommandConfig) error {
 	fmt.Println("Exiting")
 	os.Exit(0)
 	return nil
 }
 
-func requestHelp(config *commandConfig) error {
+func requestHelp(config *pokedex.CommandConfig) error {
 	fmt.Println("Help")
 	printCommands()
 	return nil
 }
 
-func setUrlConfig(locationData locations, config *commandConfig) {
-	if locationData.Previous != nil {
-		config.prev = *locationData.Previous
-	}
-
-	if locationData.Next != nil {
-		config.next = *locationData.Next
-	}
+func requestMapForward(config *pokedex.CommandConfig) error {
+	return pokedex.RequestMap("forward", config)
 }
 
-func locationRequest(url string, config *commandConfig) (locations, error) {
-	var locationData locations
-
-	if len(url) == 0 {
-		url = "https://pokeapi.co/api/v2/location/"
-	}
-
-	result, err := http.Get(url)
-
-	if err != nil {
-		return locationData, errors.New("failed to get location data")
-	}
-
-	resultBody, err := io.ReadAll(result.Body)
-	result.Body.Close()
-
-	if err != nil {
-		return locationData, errors.New("failed to read location data")
-	}
-
-	err = json.Unmarshal(resultBody, &locationData)
-
-	if err != nil {
-		return locationData, errors.New("failed to unmarshal location data")
-	}
-
-	return locationData, nil
+func requestMapBackward(config *pokedex.CommandConfig) error {
+	return pokedex.RequestMap("backward", config)
 }
 
-func printLocations(locationData locations) {
-	fmt.Println("Moving map")
-	if locationData.Count > 0 {
-		for _, nextLoc := range locationData.Results {
-			fmt.Println(nextLoc.Name)
-		}
-	} else {
-		fmt.Println("No locations")
-	}
-}
-
-func requestMapBack(config *commandConfig) error {
-	var url string = config.prev
-
-	if len(url) == 0 {
-		return errors.New("can't go back: you are at the starting location")
-	}
-
-	// Go backward
-	// fmt.Println("Going backward")
-
-	locationData, err := locationRequest(url, config)
-	if err == nil {
-		printLocations(locationData)
-		setUrlConfig(locationData, config)
-	} else {
-		fmt.Println(err)
-	}
-
-	return nil
-}
-
-func requestMap(config *commandConfig) error {
-	nextUrl := config.next
-	backUrl := config.prev
-
-	if len(nextUrl) == 0 && len(backUrl) > 0 {
-		return errors.New("can't go forward: you are at the final location")
-	}
-
-	// Go forward
-	// fmt.Println("Going forward")
-	locationData, err := locationRequest(nextUrl, config)
-
-	if err == nil {
-		printLocations(locationData)
-		setUrlConfig(locationData, config)
-	}
-
-	return nil
-}
-
-func getCommands() map[string]command {
-	return map[string]command{
+func getCommands() map[string]pokedex.Command {
+	return map[string]pokedex.Command{
 		"map": {
-			name:   "Map",
-			desc:   "Display next 20 locations",
-			method: requestMap,
+			Name:   "Map",
+			Desc:   "Display next 20 locations",
+			Method: requestMapForward,
 		},
 		"mapb": {
-			name:   "Map Back",
-			desc:   "Display previous 20 locations",
-			method: requestMapBack,
+			Name:   "Map Back",
+			Desc:   "Display previous 20 locations",
+			Method: requestMapBackward,
 		},
 		"help": {
-			name:   "Help",
-			desc:   "Help message",
-			method: requestHelp,
+			Name:   "Help",
+			Desc:   "Help message",
+			Method: requestHelp,
 		},
 		"exit": {
-			name:   "Exit",
-			desc:   "Exit Pokedex",
-			method: requestExit,
+			Name:   "Exit",
+			Desc:   "Exit Pokedex",
+			Method: requestExit,
 		},
 	}
 }
@@ -161,31 +54,29 @@ func getCommands() map[string]command {
 func printCommands() {
 	validCommands := getCommands()
 	for _, cmd := range validCommands {
-		fmt.Println(cmd.name)
-		fmt.Println(cmd.desc)
+		fmt.Println(cmd.Name)
+		fmt.Println(cmd.Desc)
 	}
 }
 
-func handleRequest(request string, config *commandConfig) {
+func handleRequest(request string, config *pokedex.CommandConfig) {
 	validCommands := getCommands()
 
 	command, ok := validCommands[request]
 	if ok {
-		err := command.method(config)
+		err := command.Method(config)
 
 		if err != nil {
 			fmt.Println(err)
-		} else {
-			fmt.Println(config.next)
-			fmt.Println(config.prev)
 		}
+
 	} else {
 		fmt.Println("Invalid command")
 	}
 }
 
 func main() {
-	var config commandConfig
+	var config pokedex.CommandConfig
 
 	for {
 		fmt.Print("pokedex > ")
