@@ -43,8 +43,13 @@ func requestHelp(config *commandConfig) error {
 }
 
 func setUrlConfig(locationData locations, config *commandConfig) {
-	config.prev = *locationData.Previous
-	config.next = *locationData.Next
+	if locationData.Previous != nil {
+		config.prev = *locationData.Previous
+	}
+
+	if locationData.Next != nil {
+		config.next = *locationData.Next
+	}
 }
 
 func locationRequest(url string, config *commandConfig) (locations, error) {
@@ -53,6 +58,7 @@ func locationRequest(url string, config *commandConfig) (locations, error) {
 	if len(url) == 0 {
 		url = "https://pokeapi.co/api/v2/location/"
 	}
+
 	result, err := http.Get(url)
 
 	if err != nil {
@@ -75,6 +81,17 @@ func locationRequest(url string, config *commandConfig) (locations, error) {
 	return locationData, nil
 }
 
+func printLocations(locationData locations) {
+	fmt.Println("Moving map")
+	if locationData.Count > 0 {
+		for _, nextLoc := range locationData.Results {
+			fmt.Println(nextLoc.Name)
+		}
+	} else {
+		fmt.Println("No locations")
+	}
+}
+
 func requestMapBack(config *commandConfig) error {
 	var url string = config.prev
 
@@ -83,11 +100,14 @@ func requestMapBack(config *commandConfig) error {
 	}
 
 	// Go backward
-	fmt.Println("Going backward")
-	
+	// fmt.Println("Going backward")
+
 	locationData, err := locationRequest(url, config)
 	if err == nil {
+		printLocations(locationData)
 		setUrlConfig(locationData, config)
+	} else {
+		fmt.Println(err)
 	}
 
 	return nil
@@ -102,9 +122,11 @@ func requestMap(config *commandConfig) error {
 	}
 
 	// Go forward
-	fmt.Println("Going forward")
+	// fmt.Println("Going forward")
 	locationData, err := locationRequest(nextUrl, config)
+
 	if err == nil {
+		printLocations(locationData)
 		setUrlConfig(locationData, config)
 	}
 
@@ -169,13 +191,13 @@ func main() {
 		fmt.Print("pokedex > ")
 
 		var input string
-		cmd, err := fmt.Scanln(&input)
+		_, err := fmt.Scanln(&input)
 
-		cmdStr := fmt.Sprintf("Command: %v", cmd)
-		inputStr := fmt.Sprintf("Input: %s", input)
+		// cmdStr := fmt.Sprintf("Command: %v", cmd)
+		// inputStr := fmt.Sprintf("Input: %s", input)
 
-		fmt.Println(cmdStr)
-		fmt.Println(inputStr)
+		// fmt.Println(cmdStr)
+		// fmt.Println(inputStr)
 
 		if err == nil {
 			handleRequest(input, &config)
