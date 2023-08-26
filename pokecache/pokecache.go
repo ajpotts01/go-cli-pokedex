@@ -1,6 +1,7 @@
 package pokecache
 
 import (
+	"fmt"
 	"sync"
 	"time"
 )
@@ -36,6 +37,7 @@ func (c Cache) reapLoop(interval time.Duration) {
 				if _, ok := c.cache[key]; ok {
 					c.lock.Lock()
 					delete(c.cache, key)
+					fmt.Printf("DELETED %s \n", key)
 					c.lock.Unlock()
 				}
 			}

@@ -21,10 +21,12 @@ type locations struct {
 
 func setUrlConfig(locationData locations, config *CommandConfig) {
 	if locationData.Previous != nil {
+		fmt.Printf("Setting backwards nav: %s \n", *locationData.Previous)
 		config.Prev = *locationData.Previous
 	}
 
 	if locationData.Next != nil {
+		fmt.Printf("Setting forwards nav: %s \n", *locationData.Next)
 		config.Next = *locationData.Next
 	}
 }
@@ -48,10 +50,11 @@ func locationRequest(url string, config *CommandConfig, cache *pokecache.Cache) 
 		url = "https://pokeapi.co/api/v2/location/"
 	}
 
+	fmt.Printf("Attempting to get cache from %s \n", url)
 	result, ok := cache.Get(url)
-
 	// TODO: Maybe turn this into its own function to return []byte
 	if !ok {
+		fmt.Println("Requested page was not cached - getting from web...")
 		httpResponse, err := http.Get(url)
 
 		if err != nil {
@@ -88,7 +91,7 @@ func RequestMap(direction string, config *CommandConfig, cache *pokecache.Cache)
 		url = config.Prev
 	}
 
-	if direction == "forward" {
+	if direction == "next" {
 		if len(config.Next) == 0 && len(config.Prev) > 0 {
 			return errors.New("can't go forward: you are at the final location")
 		}

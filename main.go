@@ -21,11 +21,11 @@ func requestHelp(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 }
 
 func requestMapForward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
-	return pokedex.RequestMap("forward", config, cache)
+	return pokedex.RequestMap("next", config, cache)
 }
 
 func requestMapBackward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
-	return pokedex.RequestMap("backward", config, cache)
+	return pokedex.RequestMap("back", config, cache)
 }
 
 func getCommands() map[string]pokedex.Command {
@@ -81,7 +81,7 @@ func main() {
 	var config pokedex.CommandConfig
 	var cache pokecache.Cache
 
-	cacheTtl := time.Duration(5)
+	cacheTtl := time.Duration(10 * time.Second)
 	cache = pokecache.NewCache(cacheTtl)
 
 	for {
