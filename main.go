@@ -1,10 +1,12 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 	"pokecache"
 	"pokedex"
+	"strings"
 	"time"
 )
 
@@ -74,22 +76,20 @@ func handleRequest(request string, config *pokedex.CommandConfig, cache *pokecac
 	var extraParam string
 	validCommands := getCommands()
 
-	fmt.Printf("\n")
-	fmt.Printf("\n")
-	fmt.Println(request)
-	//requests := strings.Split(request, " ")
-	//fmt.Println(requests)
+	requests := strings.Fields(request)
 
-	// if len(requests) > 1 {
-	// 	request = requests[0]
-	// 	extraParam = requests[1]
-	// }
-	command, ok := validCommands[request]
+	mainRequest := requests[0]
+
+	if len(requests) > 1 {
+		extraParam = requests[1]
+	}
+
+	command, ok := validCommands[mainRequest]
 	if ok {
 		err := command.Method(extraParam, config, cache)
 
 		if err != nil {
-			//fmt.Println(err)
+			fmt.Println(err.Error())
 		}
 
 	} else {
@@ -107,14 +107,14 @@ func main() {
 	for {
 		fmt.Print("pokedex > ")
 
-		var input string
-		_, err := fmt.Scanln(&input)
+		scanner := bufio.NewScanner(os.Stdin)
+		scanner.Scan()
+		input := scanner.Text()
 
-		fmt.Printf("You entered %s\n", input)
-		if err == nil {
+		if scanner.Err() == nil {
 			handleRequest(input, &config, &cache)
 		} else {
-			//fmt.Println(err.Error())
+			fmt.Println(scanner.Err().Error())
 		}
 	}
 }

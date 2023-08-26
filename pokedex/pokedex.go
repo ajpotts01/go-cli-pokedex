@@ -156,7 +156,7 @@ func exploreRequest(url string, config *CommandConfig, cache *pokecache.Cache) (
 	err = json.Unmarshal(rawData, &locationData)
 
 	if err != nil {
-		print(err)
+		fmt.Println(err.Error())
 		return locationData, errors.New("failed to unmarshal explore data")
 	}
 
