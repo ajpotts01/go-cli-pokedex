@@ -5,7 +5,6 @@ import (
 	"os"
 	"pokecache"
 	"pokedex"
-	"strings"
 	"time"
 )
 
@@ -75,18 +74,22 @@ func handleRequest(request string, config *pokedex.CommandConfig, cache *pokecac
 	var extraParam string
 	validCommands := getCommands()
 
-	requests := strings.Split(request, " ")
+	fmt.Printf("\n")
+	fmt.Printf("\n")
+	fmt.Println(request)
+	//requests := strings.Split(request, " ")
+	//fmt.Println(requests)
 
-	if len(requests) > 1 {
-		request = requests[0]
-		extraParam = requests[1]
-	}
+	// if len(requests) > 1 {
+	// 	request = requests[0]
+	// 	extraParam = requests[1]
+	// }
 	command, ok := validCommands[request]
 	if ok {
 		err := command.Method(extraParam, config, cache)
 
 		if err != nil {
-			fmt.Println(err)
+			//fmt.Println(err)
 		}
 
 	} else {
@@ -98,7 +101,7 @@ func main() {
 	var config pokedex.CommandConfig
 	var cache pokecache.Cache
 
-	cacheTtl := time.Duration(10 * time.Second)
+	cacheTtl := time.Duration(5 * time.Second)
 	cache = pokecache.NewCache(cacheTtl)
 
 	for {
@@ -107,10 +110,11 @@ func main() {
 		var input string
 		_, err := fmt.Scanln(&input)
 
+		fmt.Printf("You entered %s\n", input)
 		if err == nil {
 			handleRequest(input, &config, &cache)
 		} else {
-			print(err)
+			//fmt.Println(err.Error())
 		}
 	}
 }

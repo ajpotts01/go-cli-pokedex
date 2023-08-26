@@ -130,13 +130,14 @@ func retrieveData(url string, cache *pokecache.Cache) ([]byte, error) {
 			return result, errors.New("failed to get location data")
 		}
 
-		result, err := io.ReadAll(httpResponse.Body)
+		httpResult, err := io.ReadAll(httpResponse.Body)
 		httpResponse.Body.Close()
 
 		if err != nil {
 			return result, errors.New("failed to read location data")
 		}
 
+		result = httpResult
 		cache.Add(url, result)
 	}
 
@@ -155,7 +156,8 @@ func exploreRequest(url string, config *CommandConfig, cache *pokecache.Cache) (
 	err = json.Unmarshal(rawData, &locationData)
 
 	if err != nil {
-		return locationData, errors.New("failed to unmarshal location data")
+		print(err)
+		return locationData, errors.New("failed to unmarshal explore data")
 	}
 
 	return locationData, nil
@@ -219,7 +221,7 @@ func RequestMap(direction string, config *CommandConfig, cache *pokecache.Cache)
 	}
 
 	if len(url) == 0 {
-		url = "https://pokeapi.co/api/v2/location/"
+		url = "https://pokeapi.co/api/v2/location-area/"
 	}
 
 	locationData, err := locationRequest(url, config, cache)
