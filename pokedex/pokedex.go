@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"pokecache"
 )
 
 type locations struct {
@@ -39,27 +40,36 @@ func printLocations(locationData locations) {
 	}
 }
 
-func locationRequest(url string, config *CommandConfig) (locations, error) {
+func locationRequest(url string, config *CommandConfig, cache *pokecache.Cache) (locations, error) {
 	var locationData locations
+	var result []byte
 
 	if len(url) == 0 {
 		url = "https://pokeapi.co/api/v2/location/"
 	}
 
-	result, err := http.Get(url)
+	result, ok := cache.Get(url)
 
-	if err != nil {
-		return locationData, errors.New("failed to get location data")
+	// TODO: Maybe turn this into its own function to return []byte
+	if !ok {
+		httpResponse, err := http.Get(url)
+
+		if err != nil {
+			return locationData, errors.New("failed to get location data")
+		}
+
+		httpResult, err := io.ReadAll(httpResponse.Body)
+		httpResponse.Body.Close()
+
+		if err != nil {
+			return locationData, errors.New("failed to read location data")
+		}
+
+		result = httpResult
+		cache.Add(url, result)
 	}
 
-	resultBody, err := io.ReadAll(result.Body)
-	result.Body.Close()
-
-	if err != nil {
-		return locationData, errors.New("failed to read location data")
-	}
-
-	err = json.Unmarshal(resultBody, &locationData)
+	err := json.Unmarshal(result, &locationData)
 
 	if err != nil {
 		return locationData, errors.New("failed to unmarshal location data")
@@ -68,7 +78,7 @@ func locationRequest(url string, config *CommandConfig) (locations, error) {
 	return locationData, nil
 }
 
-func RequestMap(direction string, config *CommandConfig) error {
+func RequestMap(direction string, config *CommandConfig, cache *pokecache.Cache) error {
 	var url string
 
 	if direction == "back" {
@@ -89,7 +99,7 @@ func RequestMap(direction string, config *CommandConfig) error {
 		url = "https://pokeapi.co/api/v2/location/"
 	}
 
-	locationData, err := locationRequest(url, config)
+	locationData, err := locationRequest(url, config, cache)
 
 	if err == nil {
 		printLocations(locationData)

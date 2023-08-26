@@ -3,27 +3,29 @@ package main
 import (
 	"fmt"
 	"os"
+	"pokecache"
 	"pokedex"
+	"time"
 )
 
-func requestExit(config *pokedex.CommandConfig) error {
+func requestExit(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	fmt.Println("Exiting")
 	os.Exit(0)
 	return nil
 }
 
-func requestHelp(config *pokedex.CommandConfig) error {
+func requestHelp(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	fmt.Println("Help")
 	printCommands()
 	return nil
 }
 
-func requestMapForward(config *pokedex.CommandConfig) error {
-	return pokedex.RequestMap("forward", config)
+func requestMapForward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+	return pokedex.RequestMap("forward", config, cache)
 }
 
-func requestMapBackward(config *pokedex.CommandConfig) error {
-	return pokedex.RequestMap("backward", config)
+func requestMapBackward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+	return pokedex.RequestMap("backward", config, cache)
 }
 
 func getCommands() map[string]pokedex.Command {
@@ -59,12 +61,12 @@ func printCommands() {
 	}
 }
 
-func handleRequest(request string, config *pokedex.CommandConfig) {
+func handleRequest(request string, config *pokedex.CommandConfig, cache *pokecache.Cache) {
 	validCommands := getCommands()
 
 	command, ok := validCommands[request]
 	if ok {
-		err := command.Method(config)
+		err := command.Method(config, cache)
 
 		if err != nil {
 			fmt.Println(err)
@@ -77,6 +79,10 @@ func handleRequest(request string, config *pokedex.CommandConfig) {
 
 func main() {
 	var config pokedex.CommandConfig
+	var cache pokecache.Cache
+
+	cacheTtl := time.Duration(5)
+	cache = pokecache.NewCache(cacheTtl)
 
 	for {
 		fmt.Print("pokedex > ")
@@ -84,14 +90,8 @@ func main() {
 		var input string
 		_, err := fmt.Scanln(&input)
 
-		// cmdStr := fmt.Sprintf("Command: %v", cmd)
-		// inputStr := fmt.Sprintf("Input: %s", input)
-
-		// fmt.Println(cmdStr)
-		// fmt.Println(inputStr)
-
 		if err == nil {
-			handleRequest(input, &config)
+			handleRequest(input, &config, &cache)
 		} else {
 			print(err)
 		}
