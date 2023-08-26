@@ -5,27 +5,32 @@ import (
 	"os"
 	"pokecache"
 	"pokedex"
+	"strings"
 	"time"
 )
 
-func requestExit(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+func requestExit(extraParam string, config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	fmt.Println("Exiting")
 	os.Exit(0)
 	return nil
 }
 
-func requestHelp(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+func requestHelp(extraParam string, config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	fmt.Println("Help")
 	printCommands()
 	return nil
 }
 
-func requestMapForward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+func requestMapForward(extraParam string, config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	return pokedex.RequestMap("next", config, cache)
 }
 
-func requestMapBackward(config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+func requestMapBackward(extraParam string, config *pokedex.CommandConfig, cache *pokecache.Cache) error {
 	return pokedex.RequestMap("back", config, cache)
+}
+
+func requestExplore(extraParam string, config *pokedex.CommandConfig, cache *pokecache.Cache) error {
+	return pokedex.RequestExplore(extraParam, config, cache)
 }
 
 func getCommands() map[string]pokedex.Command {
@@ -39,6 +44,11 @@ func getCommands() map[string]pokedex.Command {
 			Name:   "Map Back",
 			Desc:   "Display previous 20 locations",
 			Method: requestMapBackward,
+		},
+		"explore": {
+			Name:   "Explore",
+			Desc:   "Explore an area for Pokemon",
+			Method: requestExplore,
 		},
 		"help": {
 			Name:   "Help",
@@ -62,11 +72,18 @@ func printCommands() {
 }
 
 func handleRequest(request string, config *pokedex.CommandConfig, cache *pokecache.Cache) {
+	var extraParam string
 	validCommands := getCommands()
 
+	requests := strings.Split(request, " ")
+
+	if len(requests) > 1 {
+		request = requests[0]
+		extraParam = requests[1]
+	}
 	command, ok := validCommands[request]
 	if ok {
-		err := command.Method(config, cache)
+		err := command.Method(extraParam, config, cache)
 
 		if err != nil {
 			fmt.Println(err)

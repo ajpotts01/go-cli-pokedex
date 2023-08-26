@@ -12,5 +12,5 @@ type CommandConfig struct {
 type Command struct {
 	Name   string
 	Desc   string
-	Method func(config *CommandConfig, cache *pokecache.Cache) error
+	Method func(extraParam string, config *CommandConfig, cache *pokecache.Cache) error
 }
