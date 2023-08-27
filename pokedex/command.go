@@ -15,7 +15,7 @@ type CommandConfig struct {
 type Command struct {
 	Name   string
 	Desc   string
-	Method func(extraParam string, config *CommandConfig, cache *pokecache.Cache) error
+	Method func(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error
 }
 
 func getCommands() map[string]Command {
@@ -53,32 +53,32 @@ func getCommands() map[string]Command {
 	}
 }
 
-func requestExit(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+func requestExit(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
 	fmt.Println("Exiting")
 	os.Exit(0)
 	return nil
 }
 
-func requestHelp(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+func requestHelp(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
 	fmt.Println("Help")
 	printCommands()
 	return nil
 }
 
-func requestMapForward(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+func requestMapForward(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
 	return RequestMap("next", config, cache)
 }
 
-func requestMapBackward(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+func requestMapBackward(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
 	return RequestMap("back", config, cache)
 }
 
-func requestExplore(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+func requestExplore(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
 	return RequestExplore(extraParam, config, cache)
 }
 
-func requestCatchAttempt(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
-	return CatchAttempt(extraParam, config, cache)
+func requestCatchAttempt(extraParam string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
+	return CatchAttempt(extraParam, config, cache, userPokedex)
 }
 
 func printCommands() {
@@ -89,7 +89,7 @@ func printCommands() {
 	}
 }
 
-func HandleRequest(request string, config *CommandConfig, cache *pokecache.Cache) {
+func HandleRequest(request string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) {
 	var extraParam string
 	validCommands := getCommands()
 
@@ -103,7 +103,7 @@ func HandleRequest(request string, config *CommandConfig, cache *pokecache.Cache
 
 	command, ok := validCommands[mainRequest]
 	if ok {
-		err := command.Method(extraParam, config, cache)
+		err := command.Method(extraParam, config, cache, userPokedex)
 
 		if err != nil {
 			fmt.Println(err.Error())
