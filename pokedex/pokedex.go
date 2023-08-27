@@ -346,6 +346,35 @@ func NewPokedex() Pokedex {
 	return newPokedex
 }
 
+func InspectPokedex(targetPokemon string, currentPokedex *Pokedex) error {
+	retrievedPokemon, ok := currentPokedex.pokedex[targetPokemon]
+
+	if !ok {
+		fmt.Println("You have not caught this Pokemon")
+		return nil
+	}
+
+	fmt.Printf("Name: %s\n", retrievedPokemon.Name)
+	fmt.Printf("Height: %v\n", retrievedPokemon.Height)
+	fmt.Printf("Weight: %v\n", retrievedPokemon.Weight)
+
+	if len(retrievedPokemon.Stats) > 0 {
+		fmt.Printf("Stats:\n")
+		for _, stat := range retrievedPokemon.Stats {
+			fmt.Printf("\t -%s: %v\n", stat.Stat.Name, stat.BaseStat)
+		}
+	}
+
+	if len(retrievedPokemon.Types) > 0 {
+		fmt.Printf("Types:\n")
+		for _, pokeType := range retrievedPokemon.Types {
+			fmt.Printf("\t -%s\n", pokeType.Type.Name)
+		}
+	}
+
+	return nil
+}
+
 func setUrlConfig(locationData locations, config *CommandConfig) {
 	if locationData.Previous != nil {
 		fmt.Printf("Setting backwards nav: %s \n", *locationData.Previous)
