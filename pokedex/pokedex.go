@@ -346,6 +346,13 @@ func NewPokedex() Pokedex {
 	return newPokedex
 }
 
+func PrintPokedex(currentPokedex *Pokedex) {
+	fmt.Println("Current Pokedex:")
+	for _, val := range currentPokedex.pokedex {
+		fmt.Printf("\t - %s\n", val.Name)
+	}
+}
+
 func InspectPokedex(targetPokemon string, currentPokedex *Pokedex) error {
 	retrievedPokemon, ok := currentPokedex.pokedex[targetPokemon]
 
