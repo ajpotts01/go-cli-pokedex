@@ -20,6 +20,11 @@ type Command struct {
 
 func getCommands() map[string]Command {
 	return map[string]Command{
+		"catch": {
+			Name:   "Catch",
+			Desc:   "Attempt to catch any Pokemon",
+			Method: requestCatchAttempt,
+		},
 		"map": {
 			Name:   "Map",
 			Desc:   "Display next 20 locations",
@@ -70,6 +75,10 @@ func requestMapBackward(extraParam string, config *CommandConfig, cache *pokecac
 
 func requestExplore(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
 	return RequestExplore(extraParam, config, cache)
+}
+
+func requestCatchAttempt(extraParam string, config *CommandConfig, cache *pokecache.Cache) error {
+	return CatchAttempt(extraParam, config, cache)
 }
 
 func printCommands() {

@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-func StartCli() {
+func startCli() {
 	var config pokedex.CommandConfig
 	var cache pokecache.Cache
 

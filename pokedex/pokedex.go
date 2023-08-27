@@ -10,8 +10,12 @@ import (
 )
 
 /**************
-* STRUCTS
+* TYPES
 ***************/
+type pokedex struct {
+	pokedex map[string]pokemon
+}
+
 type locations struct {
 	Count    int     `json:"count"`
 	Next     *string `json:"next"`
