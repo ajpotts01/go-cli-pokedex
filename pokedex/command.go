@@ -30,6 +30,11 @@ func getCommands() map[string]Command {
 			Desc:   "Inspect any Pokemon in your Pokedex",
 			Method: requestInspect,
 		},
+		"pokedex": {
+			Name:   "Pokedex",
+			Desc:   "List contents of current Pokedex",
+			Method: requestPrint,
+		},
 		"map": {
 			Name:   "Map",
 			Desc:   "Display next 20 locations",
@@ -88,6 +93,12 @@ func requestCatchAttempt(extraParam string, config *CommandConfig, cache *pokeca
 
 func requestInspect(extraParam string, config *CommandConfig, cache *pokecache.Cache, currentPokedex *Pokedex) error {
 	return InspectPokedex(extraParam, currentPokedex)
+}
+
+func requestPrint(extraParam string, config *CommandConfig, cache *pokecache.Cache, currentPokedex *Pokedex) error {
+	PrintPokedex(currentPokedex)
+
+	return nil
 }
 
 func printCommands() {

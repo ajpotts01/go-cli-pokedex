@@ -46,7 +46,7 @@ func catch(newPokemon pokemon) bool {
 	return false
 }
 
-func CatchAttempt(pokemon string, config *CommandConfig, cache *pokecache.Cache, userPokedex *Pokedex) error {
+func CatchAttempt(pokemon string, config *CommandConfig, cache *pokecache.Cache, currentPokedex *Pokedex) error {
 	const baseUrl = "https://pokeapi.co/api/v2/pokemon/"
 
 	url := baseUrl + pokemon
@@ -61,13 +61,10 @@ func CatchAttempt(pokemon string, config *CommandConfig, cache *pokecache.Cache,
 	success := catch(pokemonData)
 
 	if success {
-		userPokedex.pokedex[pokemon] = pokemonData
+		currentPokedex.pokedex[pokemon] = pokemonData
 	}
 
-	fmt.Println("Current Pokedex:")
-	for _, val := range userPokedex.pokedex {
-		fmt.Printf("\t - %s\n", val.Name)
-	}
+	PrintPokedex(currentPokedex)
 
 	return nil
 }
